@@ -1,6 +1,7 @@
 package users
 
+import "github.com/gin-gonic/gin"
 
-func Routers(){
-
+func Routers(incomingRoutes *gin.Engine) {
+	incomingRoutes.POST("api/v1/auth/signup/", UserSignup())
 }

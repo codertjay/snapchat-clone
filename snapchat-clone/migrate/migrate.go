@@ -1,8 +1,9 @@
-package snapchat_clone
+package migrate
 
 import (
 	"log"
 	"snapchat-clone/chats"
+	"snapchat-clone/snapchat-clone/database"
 	"snapchat-clone/spotlights"
 	"snapchat-clone/stories"
 	"snapchat-clone/users"
@@ -12,7 +13,7 @@ import (
 
 func Migrate() {
 	// Migrate the schema
-	db := DBConnection()
+	db := database.DBConnection()
 	/* User App migration */
 	// Migrate the user models
 	err := db.AutoMigrate(&users.User{})
@@ -24,7 +25,6 @@ func Migrate() {
 	if err != nil {
 		log.Panicln("Error migrating User profile", err)
 	}
-
 	/* Chat app migration */
 
 	// Migrate the Messages

@@ -3,7 +3,8 @@ package main
 import (
 	"log"
 	"os"
-	snapchat_clone "snapchat-clone/snapchat-clone"
+	snapchat_clone "snapchat-clone/snapchat-clone/migrate"
+	"snapchat-clone/snapchat-clone/route"
 )
 
 func main() {
@@ -17,8 +18,8 @@ func main() {
 	snapchat_clone.Migrate()
 
 	// access the routes
-	routers := snapchat_clone.SnapChatCloneRoutes()
-
+	routers := route.SnapChatCloneRoutes()
+	// run on this port
 	err := routers.Run(":" + port)
 	if err != nil {
 		log.Panicln("Error running server", err)
