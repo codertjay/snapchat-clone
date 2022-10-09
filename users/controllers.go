@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"log"
 	snapchat_clone "snapchat-clone/snapchat-clone/database"
 	"time"
 )
@@ -52,9 +53,9 @@ func UserSignup() gin.HandlerFunc {
 		}
 		/* Return the data*/
 		c.JSON(201, gin.H{
-			"email":        user.Email,
-			"token":        user.AccessToken,
-			"refreshToken": user.RefreshToken,
+			"email":         user.Email,
+			"access_token":  user.AccessToken,
+			"refresh_token": user.RefreshToken,
 		})
 		return
 	}
@@ -98,13 +99,19 @@ func UserLogin() gin.HandlerFunc {
 			c.JSON(500, gin.H{"error": "Error occurred"})
 			return
 		}
-		// Update the user token
-		db.Model(&User{}).Where("email = ?", true).Updates(map[string]interface{}{"token": token, "refreshToken": refreshToken})
 
+		// create the update sql query
+		sqlStatement := `UPDATE users SET access_token=$2, refresh_token=$3 WHERE email=$1`
+		// Update the user token
+		// execute the sql statement
+		err = db.Exec(sqlStatement, foundUser.Email, token, refreshToken).Error
+		if err != nil {
+			log.Panicln("Error occurred", err)
+		}
 		c.JSON(200, gin.H{
-			"email":        user.Email,
-			"token":        token,
-			"refreshToken": refreshToken,
+			"email":         user.Email,
+			"access_token":  token,
+			"refresh_token": refreshToken,
 		})
 		return
 

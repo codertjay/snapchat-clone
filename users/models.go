@@ -2,6 +2,7 @@ package users
 
 import (
 	"github.com/google/uuid"
+	snapchat_clone "snapchat-clone/snapchat-clone/database"
 	"time"
 )
 
@@ -17,6 +18,17 @@ type User struct {
 	Password     *string    `json:"password" validate:"required,max=250,min=5"`
 	AccessToken  *string    `json:"access_token"`
 	RefreshToken *string    `json:"refresh_token"`
+}
+
+func (r *User) FindAll() User {
+	var users User
+	db := snapchat_clone.DBConnection()
+	snapchat_clone.CloseDB()
+	err := db.Find(&users).Error
+	if err != nil {
+		return users
+	}
+	return users
 }
 
 // Profile /*  Profile*/
