@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"snapchat-clone/snapchat-clone/database"
+	"snapchat-clone/snapchat-clone/helpers"
 	"time"
 )
 
@@ -19,6 +20,19 @@ func HashPassword(password string) string {
 	}
 	return string(userHashPassword)
 
+}
+
+func VerifyPassword(providedHashedPassword string, userPassword string) (bool, error) {
+	err := bcrypt.CompareHashAndPassword(
+		[]byte(providedHashedPassword),
+		[]byte(userPassword),
+	)
+	check := true
+	if err != nil {
+		check = false
+		return check, err
+	}
+	return check, nil
 }
 
 func CreateUser(user *User) (User, error) {
@@ -48,20 +62,11 @@ func CreateUser(user *User) (User, error) {
 	return *user, nil
 }
 
-// SignedInDetails /* This is meant to create access token and also the refresh token */
-type SignedInDetails struct {
-	Name  string
-	Email string
-	Phone string
-	ID    uuid.UUID
-	jwt.StandardClaims
-}
-
 // GenerateAllToken /* this is used to generate the access token and also the refresh token*/
 func GenerateAllToken(Name string, Email string, Phone string, ID uuid.UUID) (signedToken string,
 	refreshToken string, error error) {
 	// Create the access claims
-	claims := &SignedInDetails{
+	claims := &helpers.SignedInDetails{
 		Name:  Name,
 		Email: Email,
 		Phone: Phone,
@@ -71,7 +76,7 @@ func GenerateAllToken(Name string, Email string, Phone string, ID uuid.UUID) (si
 		},
 	}
 	// Create the refresh claims
-	refreshClaims := &SignedInDetails{
+	refreshClaims := &helpers.SignedInDetails{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * time.Duration(24)).Unix(),
 		},

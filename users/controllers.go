@@ -33,6 +33,7 @@ func UserSignup() gin.HandlerFunc {
 
 		// Check if the user exists
 		db := snapchat_clone.DBConnection()
+		snapchat_clone.CloseDB()
 		db.Where(&User{Email: user.Email}).Find(&foundUser)
 		if foundUser.Email != nil {
 			c.JSON(400, gin.H{"error": "User With the email already exist"})
@@ -56,5 +57,56 @@ func UserSignup() gin.HandlerFunc {
 			"refreshToken": user.RefreshToken,
 		})
 		return
+	}
+}
+
+func UserLogin() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var _, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+		db := snapchat_clone.DBConnection()
+		snapchat_clone.CloseDB()
+		/*  Initialize the user*/
+		var user User
+		var foundUser User
+		if err := c.BindJSON(&user); err != nil {
+			c.JSON(400, gin.H{"error": "Invalid parameters pass"})
+			return
+		}
+		// check if the email is passed
+		if user.Email == nil {
+			c.JSON(400, gin.H{"error": "Email not passed"})
+			return
+		}
+		if user.Password == nil {
+			c.JSON(400, gin.H{"error": "Password not passed"})
+			return
+		}
+		//	 check if the user email exists
+		db.Where(&User{Email: user.Email}).Find(&foundUser)
+		if foundUser.Email == nil {
+			c.JSON(400, gin.H{"error": "user does not exist or invalid parameters passed. Please make sure you pass the correct params"})
+			return
+		}
+		check, err := VerifyPassword(*foundUser.Password, *user.Password)
+		if err != nil && check == false {
+			c.JSON(400, gin.H{"error": "Invalid password or mail passed"})
+			return
+		}
+		token, refreshToken, err := GenerateAllToken(*foundUser.Name, *foundUser.Email, *foundUser.Phone, foundUser.ID)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "Error occurred"})
+			return
+		}
+		// Update the user token
+		db.Model(&User{}).Where("email = ?", true).Updates(map[string]interface{}{"token": token, "refreshToken": refreshToken})
+
+		c.JSON(200, gin.H{
+			"email":        user.Email,
+			"token":        token,
+			"refreshToken": refreshToken,
+		})
+		return
+
 	}
 }

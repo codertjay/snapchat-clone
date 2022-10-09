@@ -1,3 +1,0 @@
-package snapchat_clone
-
-
