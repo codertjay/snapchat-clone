@@ -1,4 +1,4 @@
-package users
+package utils
 
 import (
 	"github.com/dgrijalva/jwt-go"
@@ -6,8 +6,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"os"
+	"snapchat-clone/models"
 	"snapchat-clone/snapchat-clone/database"
-	"snapchat-clone/snapchat-clone/helpers"
 	"time"
 )
 
@@ -35,7 +35,7 @@ func VerifyPassword(providedHashedPassword string, userPassword string) (bool, e
 	return check, nil
 }
 
-func CreateUser(user *User) (User, error) {
+func CreateUser(user *models.User) (models.User, error) {
 	/* To create a user we check if the email exist and also the phone */
 	log.Println("Creating user", user)
 	// hash the password
@@ -54,7 +54,7 @@ func CreateUser(user *User) (User, error) {
 	// create the user
 	db.Create(&user)
 	// Create profile for the user
-	profile := &Profile{}
+	profile := &models.Profile{}
 	profile.ID = uuid.New()
 	profile.UserID = user.ID
 	db.Create(&profile)
@@ -62,11 +62,20 @@ func CreateUser(user *User) (User, error) {
 	return *user, nil
 }
 
+// SignedInDetails /* This is meant to create access token and also the refresh token */
+type SignedInDetails struct {
+	Name  string
+	Email string
+	Phone string
+	ID    uuid.UUID
+	jwt.StandardClaims
+}
+
 // GenerateAllToken /* this is used to generate the access token and also the refresh token*/
 func GenerateAllToken(Name string, Email string, Phone string, ID uuid.UUID) (signedToken string,
 	refreshToken string, error error) {
 	// Create the access claims
-	claims := &helpers.SignedInDetails{
+	claims := &SignedInDetails{
 		Name:  Name,
 		Email: Email,
 		Phone: Phone,
@@ -76,7 +85,7 @@ func GenerateAllToken(Name string, Email string, Phone string, ID uuid.UUID) (si
 		},
 	}
 	// Create the refresh claims
-	refreshClaims := &helpers.SignedInDetails{
+	refreshClaims := &SignedInDetails{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * time.Duration(24)).Unix(),
 		},

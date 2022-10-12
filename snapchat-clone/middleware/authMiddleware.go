@@ -4,15 +4,21 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"os"
-	"snapchat-clone/snapchat-clone/helpers"
+	"snapchat-clone/models"
+	"snapchat-clone/snapchat-clone/database"
+	"snapchat-clone/utils"
+
 	"time"
 )
 
 var SECRET_KEY = os.Getenv("SECRET_KEY")
 
-func Authenticated() gin.HandlerFunc {
+func RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		db := database.DBConnection()
+		defer database.CloseDB()
 		/* get the token*/
 		clientToken := c.Request.Header.Get("token")
 		if clientToken == "" {
@@ -22,22 +28,23 @@ func Authenticated() gin.HandlerFunc {
 		}
 		claims, err := ValidateToken(clientToken)
 		if err != "" {
-			c.JSON(500, gin.H{"error": err})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err})
 			c.Abort()
 			return
 		}
-		c.Set("email", claims.Email)
-		c.Set("name ", claims.Name)
-		c.Set("user_id", claims.ID)
+		var user models.User
+		db.First(&user, claims.ID)
+
+		c.Set("user", user)
 		c.Next()
 
 	}
 }
 
-func ValidateToken(signedToken string) (claims *helpers.SignedInDetails, msg string) {
+func ValidateToken(signedToken string) (claims *utils.SignedInDetails, msg string) {
 	token, err := jwt.ParseWithClaims(
 		signedToken,
-		&helpers.SignedInDetails{},
+		&utils.SignedInDetails{},
 		func(token *jwt.Token) (interface{}, error) {
 			return []byte(SECRET_KEY), nil
 		},
@@ -46,7 +53,7 @@ func ValidateToken(signedToken string) (claims *helpers.SignedInDetails, msg str
 		msg = err.Error()
 		return
 	}
-	claims, ok := token.Claims.(*helpers.SignedInDetails)
+	claims, ok := token.Claims.(*utils.SignedInDetails)
 	if !ok {
 		msg = fmt.Sprint("the token is invalid")
 		msg = err.Error()

@@ -3,7 +3,7 @@ package route
 import (
 	"github.com/gin-gonic/gin"
 	"log"
-	"snapchat-clone/users"
+	"snapchat-clone/routers"
 )
 
 func SnapChatCloneRoutes() *gin.Engine {
@@ -15,6 +15,6 @@ func SnapChatCloneRoutes() *gin.Engine {
 	/* Log */
 	router.Use(gin.Logger())
 	// Users routes
-	users.Routers(router)
+	routers.Routers(router)
 	return router
 }
