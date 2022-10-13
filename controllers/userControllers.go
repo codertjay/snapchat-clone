@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -125,15 +126,32 @@ func UserUpdate() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var _, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
-		//db := snapchat_clone.DBConnection()
-		//defer snapchat_clone.CloseDB()
-		//if err := c.BindJSON(&user); err != nil {
-		//	c.JSON(400, gin.H{"error": "Invalid parameters pass"})
-		//	return
-		//}
-		user, _ := c.Get("user")
-		msg := fmt.Sprintf("User", user)
-		c.JSON(200, gin.H{"message": msg})
+		db := snapchat_clone.DBConnection()
+		defer snapchat_clone.CloseDB()
+		var passedUser models.User
+		if err := c.BindJSON(&passedUser); err != nil {
+			c.JSON(400, gin.H{"error": "Invalid parameters pass"})
+			return
+		}
+		loggedInUser, _ := c.Get("user")
+		user := loggedInUser.(models.User)
+		user.Update(&passedUser, &*db)
+		c.JSON(200, gin.H{"message": "Successfully Updated"})
+		return
+	}
+}
+
+func UserDetail() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var _, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+		loggedInUser, _ := c.Get("user")
+		user := loggedInUser.(models.User)
+		serializedUser := user.UserDetailSerializer()
+		fmt.Println(*serializedUser.AccessToken)
+		fmt.Println(*serializedUser.Password)
+		data, _ := json.MarshalIndent(serializedUser, "", "")
+		c.JSON(200, gin.H{"message": "User Detail", "data": string(data)})
 		return
 	}
 }

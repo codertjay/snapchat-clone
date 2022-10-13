@@ -20,7 +20,7 @@ func RequireAuth() gin.HandlerFunc {
 		db := database.DBConnection()
 		defer database.CloseDB()
 		/* get the token*/
-		clientToken := c.Request.Header.Get("token")
+		clientToken := c.Request.Header.Get("Authorization")
 		if clientToken == "" {
 			c.JSON(400, gin.H{"error": "Authorization token not passed"})
 			c.Abort()
@@ -34,7 +34,6 @@ func RequireAuth() gin.HandlerFunc {
 		}
 		var user models.User
 		db.First(&user, claims.ID)
-
 		c.Set("user", user)
 		c.Next()
 

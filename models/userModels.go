@@ -1,10 +1,24 @@
 package models
 
 import (
+	"fmt"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
+	"log"
+	"reflect"
 	snapchat_clone "snapchat-clone/snapchat-clone/database"
+	"strings"
 	"time"
 )
+
+// Note : Fields with omit empty are not allowed to be shown in the frontend
+type tagOptions string
+
+// ContainOmitEmpty splits a struct field's json tag into its name and
+// comma-separated options.
+func ContainOmitEmpty(tag string) bool {
+	return strings.Contains(tag, "omitempty")
+}
 
 // User /* The user models struct */
 type User struct {
@@ -15,12 +29,28 @@ type User struct {
 	Birthday     *time.Time `json:"birthday"`
 	CreatedAt    *time.Time `json:"created_at" gorm:"default:CURRENT_TIMESTAMP;"`
 	Timestamp    *time.Time `json:"timestamp" gorm:"default:CURRENT_TIMESTAMP;autoUpdateTime"`
-	Password     *string    `json:"password" validate:"required,max=250,min=5"`
-	AccessToken  *string    `json:"access_token"`
-	RefreshToken *string    `json:"refresh_token"`
+	Password     *string    `json:"password,omitempty" validate:"required,max=250,min=5"`
+	AccessToken  *string    `json:"access_token,omitempty"`
+	RefreshToken *string    `json:"refresh_token,omitempty"`
 }
 
-func (r *User) FindAll() User {
+func (c *User) UserDetailSerializer() *User {
+	var user User
+	user = *c
+	NumberOfValues := reflect.TypeOf(user).NumField()
+	for i := 0; i < NumberOfValues; i++ {
+		fmt.Println(ContainOmitEmpty(reflect.TypeOf(user).FieldByIndex([]int{i}).Tag.Get("json")))
+		if ContainOmitEmpty(reflect.TypeOf(user).FieldByIndex([]int{i}).Tag.Get("json")) == true {
+			reflect.Zero(reflect.ValueOf(user).FieldByIndex([]int{i}).Type())
+			fmt.Println(reflect.ValueOf(user).FieldByIndex([]int{i}))
+			fmt.Println("Contain omit empty")
+		}
+	}
+	fmt.Println(user)
+	return &user
+}
+
+func (u *User) FindAll() User {
 	var users User
 	db := snapchat_clone.DBConnection()
 	snapchat_clone.CloseDB()
@@ -31,6 +61,38 @@ func (r *User) FindAll() User {
 	return users
 }
 
+// Update /* This save the user data*/
+func (u *User) Update(user *User, db *gorm.DB) {
+	if user.Name != nil {
+		err := db.Model(&user).Where(&User{ID: u.ID}).Update("name", user.Name).Error
+		if err != nil {
+			log.Panicln("Error occurred updating user", err)
+			return
+		}
+	}
+	if user.Email != nil {
+		err := db.Model(&user).Where(&User{ID: u.ID}).Update("email", user.Email).Error
+		if err != nil {
+			log.Panicln("Error occurred", err)
+			return
+		}
+	}
+	if user.Phone != nil {
+		err := db.Model(&user).Where(&User{ID: u.ID}).Update("phone", user.Phone).Error
+		if err != nil {
+			log.Panicln("Error occurred updating user", err)
+			return
+		}
+	}
+	if user.Birthday != nil {
+		err := db.Model(&user).Where(&User{ID: u.ID}).Update("phone", user.Phone).Error
+		if err != nil {
+			log.Panicln("Error occurred updating user", err)
+			return
+		}
+	}
+}
+
 // Profile /*  Profile*/
 type Profile struct {
 	//	the one to one relationship
@@ -39,7 +101,7 @@ type Profile struct {
 	UserID                uuid.UUID  `json:"user_id" gorm:"not null;"`
 	ProfileImage          *string    `json:"profile_image"`
 	BackgroundImage       *string    `json:"background_image"`
-	GhostMode             bool       `json:"ghost_mode" gorm:"default:false;type:bool;"`
+	GhostMode             *bool      `json:"ghost_mode" gorm:"default:false;type:bool;"`
 	SeeLocation           *string    `json:"see_location" validate:"omitempty,eq=FRIENDS|eq=EXCEPT_FRIENDS" gorm:"default:FRIENDS;"`
 	LocationALlFriends    []User     `json:"location_all_friends" gorm:"many2many:location_all_friends;"`
 	LocationExceptFriends []User     `json:"location_except_friends" gorm:"many2many:location_except_friends;"`
