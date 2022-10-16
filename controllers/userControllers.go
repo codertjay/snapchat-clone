@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"log"
@@ -112,10 +111,9 @@ func UserLogin() gin.HandlerFunc {
 		if err != nil {
 			log.Panicln("Error getting user and updating", err)
 		}
-		data, _ := json.MarshalIndent(serializers.LoginSerializer(&user), "", "")
-		c.JSON(200, data)
+		serializedData := serializers.LoginSerializer(&foundUser)
+		c.JSON(200, serializedData)
 		return
-
 	}
 }
 
@@ -145,8 +143,8 @@ func UserDetail() gin.HandlerFunc {
 
 		loggedInUser, _ := c.Get("user")
 		user := loggedInUser.(models.User)
-		data, _ := json.MarshalIndent(serializers.UserDetailSerializer(&user), "", "")
-		c.JSON(200, gin.H{"message": "User Detail", "data": string(data)})
+		serializedData := serializers.UserDetailSerializer(&user)
+		c.JSON(200, serializedData)
 		return
 	}
 }
@@ -169,8 +167,8 @@ func ProfileDetail() gin.HandlerFunc {
 			c.JSON(500, gin.H{"error": err})
 			return
 		}
-		data, _ := json.MarshalIndent(serializers.ProfileDetailSerializer(&profile, &user), "", "")
-		c.JSON(200, gin.H{"message": "User Detail", "data": string(data)})
+		serializedData := serializers.ProfileDetailSerializer(&profile, &user)
+		c.JSON(200, serializedData)
 		return
 	}
 }
@@ -187,18 +185,61 @@ func ProfileUpdate() gin.HandlerFunc {
 
 		// profile passed from posted data
 		var profile models.Profile
-		// profile found from database
-		var foundProfile models.Profile
 		if err := c.BindJSON(&profile); err != nil {
 			c.JSON(400, gin.H{"error": "Invalid parameters pass"})
 			return
 		}
-		//err := db.Where(&models.Profile{UserID: user.ID}).Find(&foundProfile).
-		//	Updates(map[string]interface{}profile)
-		//
-		//
-		//
-		//db.Where(&models.Profile{UserID: user.ID}).Update()
-
+		if profile.ProfileImageURL != nil {
+			err := db.Where(&models.Profile{UserID: user.ID}).Update("profile_image_url", profile.ProfileImageURL).Error
+			if err != nil {
+				c.JSON(500, gin.H{"error": err.Error()})
+				return
+			}
+		}
+		if profile.BackgroundImageURL != nil {
+			err := db.Where(&models.Profile{UserID: user.ID}).
+				Update("background_image_url", profile.BackgroundImageURL).Error
+			if err != nil {
+				c.JSON(500, gin.H{"error": err.Error()})
+				return
+			}
+		}
+		if profile.GhostMode != nil {
+			err := db.Where(&models.Profile{UserID: user.ID}).Update("ghost_mode", profile.GhostMode).Error
+			if err != nil {
+				c.JSON(500, gin.H{"error": err.Error()})
+				return
+			}
+		}
+		if profile.SeeLocation != nil {
+			err := db.Where(&models.Profile{UserID: user.ID}).Update("see_location", profile.SeeLocation).Error
+			if err != nil {
+				c.JSON(500, gin.H{"error": err.Error()})
+				return
+			}
+		}
+		if profile.LocationExceptFriends != nil {
+			err := db.Where(&models.Profile{UserID: user.ID}).Update("see_location", profile.SeeLocation).Error
+			if err != nil {
+				c.JSON(500, gin.H{"error": err.Error()})
+				return
+			}
+		}
+		if profile.LocationALlFriends != nil {
+			err := db.Where(&models.Profile{UserID: user.ID}).Update("see_location", profile.SeeLocation).Error
+			if err != nil {
+				c.JSON(500, gin.H{"error": err.Error()})
+				return
+			}
+		}
+		if profile.TwoFactor != nil {
+			err := db.Where(&models.Profile{UserID: user.ID}).Update("two_factor", profile.TwoFactor).Error
+			if err != nil {
+				c.JSON(500, gin.H{"error": err.Error()})
+				return
+			}
+		}
+		c.JSON(200, gin.H{"messages": "Successfully updated profile"})
+		return
 	}
 }

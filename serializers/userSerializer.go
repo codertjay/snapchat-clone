@@ -4,6 +4,7 @@ import "snapchat-clone/models"
 
 func LoginSerializer(user *models.User) *models.User {
 	var serialized = models.User{
+		ID:           user.ID,
 		Email:        user.Email,
 		AccessToken:  user.AccessToken,
 		RefreshToken: user.RefreshToken,
@@ -29,8 +30,9 @@ func ProfileDetailSerializer(profile *models.Profile, user *models.User) *models
 	var serialized = models.Profile{
 		ID:                    profile.ID,
 		User:                  user,
-		ProfileImage:          profile.ProfileImage,
-		BackgroundImage:       profile.BackgroundImage,
+		UserID:                user.ID,
+		ProfileImageURL:       profile.ProfileImageURL,
+		BackgroundImageURL:    profile.BackgroundImageURL,
 		GhostMode:             profile.GhostMode,
 		SeeLocation:           profile.SeeLocation,
 		LocationALlFriends:    profile.LocationALlFriends,

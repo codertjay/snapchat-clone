@@ -10,7 +10,8 @@ func Routers(incomingRoutes *gin.Engine) {
 	incomingRoutes.POST("api/v1/auth/signup/", controllers.UserSignup())
 	incomingRoutes.POST("api/v1/auth/login/", controllers.UserLogin())
 	//	Logged in route
-	incomingRoutes.POST("api/v1/user/user_update/", middleware.RequireAuth(), controllers.UserUpdate())
+	incomingRoutes.PUT("api/v1/user/user_update/", middleware.RequireAuth(), controllers.UserUpdate())
 	incomingRoutes.GET("api/v1/user/user_detail/", middleware.RequireAuth(), controllers.UserDetail())
 	incomingRoutes.GET("api/v1/user/profile_detail/", middleware.RequireAuth(), controllers.ProfileDetail())
+	incomingRoutes.PUT("api/v1/user/profile_update/", middleware.RequireAuth(), controllers.ProfileUpdate())
 }
