@@ -162,7 +162,7 @@ func ProfileDetail() gin.HandlerFunc {
 		var profile models.Profile
 
 		// find the user profile
-		err := db.Where(&models.Profile{UserID: user.ID}).Find(&profile).Error
+		err := db.Model(&profile).Where(&models.Profile{UserID: user.ID}).Find(&profile).Error
 		if err != nil {
 			c.JSON(500, gin.H{"error": err})
 			return
@@ -190,14 +190,14 @@ func ProfileUpdate() gin.HandlerFunc {
 			return
 		}
 		if profile.ProfileImageURL != nil {
-			err := db.Where(&models.Profile{UserID: user.ID}).Update("profile_image_url", profile.ProfileImageURL).Error
+			err := db.Model(&profile).Where(&models.Profile{UserID: user.ID}).Update("profile_image_url", profile.ProfileImageURL).Error
 			if err != nil {
 				c.JSON(500, gin.H{"error": err.Error()})
 				return
 			}
 		}
 		if profile.BackgroundImageURL != nil {
-			err := db.Where(&models.Profile{UserID: user.ID}).
+			err := db.Model(&profile).Where(&models.Profile{UserID: user.ID}).
 				Update("background_image_url", profile.BackgroundImageURL).Error
 			if err != nil {
 				c.JSON(500, gin.H{"error": err.Error()})
@@ -205,35 +205,35 @@ func ProfileUpdate() gin.HandlerFunc {
 			}
 		}
 		if profile.GhostMode != nil {
-			err := db.Where(&models.Profile{UserID: user.ID}).Update("ghost_mode", profile.GhostMode).Error
+			err := db.Model(&profile).Where(&models.Profile{UserID: user.ID}).Update("ghost_mode", profile.GhostMode).Error
 			if err != nil {
 				c.JSON(500, gin.H{"error": err.Error()})
 				return
 			}
 		}
 		if profile.SeeLocation != nil {
-			err := db.Where(&models.Profile{UserID: user.ID}).Update("see_location", profile.SeeLocation).Error
+			err := db.Model(&profile).Where(&models.Profile{UserID: user.ID}).Update("see_location", profile.SeeLocation).Error
 			if err != nil {
 				c.JSON(500, gin.H{"error": err.Error()})
 				return
 			}
 		}
 		if profile.LocationExceptFriends != nil {
-			err := db.Where(&models.Profile{UserID: user.ID}).Update("see_location", profile.SeeLocation).Error
+			err := db.Model(&profile).Where(&models.Profile{UserID: user.ID}).Update("location_except_friends", profile.LocationExceptFriends).Error
 			if err != nil {
 				c.JSON(500, gin.H{"error": err.Error()})
 				return
 			}
 		}
 		if profile.LocationALlFriends != nil {
-			err := db.Where(&models.Profile{UserID: user.ID}).Update("see_location", profile.SeeLocation).Error
+			err := db.Model(&profile).Where(&models.Profile{UserID: user.ID}).Update("location_all_friends", profile.LocationALlFriends).Error
 			if err != nil {
 				c.JSON(500, gin.H{"error": err.Error()})
 				return
 			}
 		}
 		if profile.TwoFactor != nil {
-			err := db.Where(&models.Profile{UserID: user.ID}).Update("two_factor", profile.TwoFactor).Error
+			err := db.Model(&profile).Where(&models.Profile{UserID: user.ID}).Update("two_factor", profile.TwoFactor).Error
 			if err != nil {
 				c.JSON(500, gin.H{"error": err.Error()})
 				return
