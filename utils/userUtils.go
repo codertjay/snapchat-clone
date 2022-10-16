@@ -8,21 +8,10 @@ import (
 	"os"
 	"snapchat-clone/models"
 	"snapchat-clone/snapchat-clone/database"
-	"strings"
 	"time"
 )
 
 var SECRET_KEY = os.Getenv("SECRET_KEY")
-
-/* This is used to get the tag of a field*/
-type tagOptions string
-
-func ParseTag(tag string) (string, tagOptions) {
-	if idx := strings.Index(tag, ","); idx != -1 {
-		return tag[:idx], tagOptions(tag[idx+1:])
-	}
-	return tag, tagOptions("")
-}
 
 func HashPassword(password string) string {
 	userHashPassword, err := bcrypt.GenerateFromPassword([]byte(password), 14)

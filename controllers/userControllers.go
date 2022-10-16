@@ -3,11 +3,11 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"log"
 	"snapchat-clone/models"
+	"snapchat-clone/serializers"
 	snapchat_clone "snapchat-clone/snapchat-clone/database"
 	"snapchat-clone/utils"
 	"time"
@@ -112,11 +112,8 @@ func UserLogin() gin.HandlerFunc {
 		if err != nil {
 			log.Panicln("Error getting user and updating", err)
 		}
-		c.JSON(200, gin.H{
-			"email":         foundUser.Email,
-			"access_token":  foundUser.AccessToken,
-			"refresh_token": foundUser.RefreshToken,
-		})
+		data, _ := json.MarshalIndent(serializers.LoginSerializer(&user), "", "")
+		c.JSON(200, data)
 		return
 
 	}
@@ -145,13 +142,63 @@ func UserDetail() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var _, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
+
 		loggedInUser, _ := c.Get("user")
 		user := loggedInUser.(models.User)
-		serializedUser := user.UserDetailSerializer()
-		fmt.Println(*serializedUser.AccessToken)
-		fmt.Println(*serializedUser.Password)
-		data, _ := json.MarshalIndent(serializedUser, "", "")
+		data, _ := json.MarshalIndent(serializers.UserDetailSerializer(&user), "", "")
 		c.JSON(200, gin.H{"message": "User Detail", "data": string(data)})
 		return
+	}
+}
+
+func ProfileDetail() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var _, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+		// Check if the user exists
+		db := snapchat_clone.DBConnection()
+		defer snapchat_clone.CloseDB()
+		loggedInUser, _ := c.Get("user")
+		user := loggedInUser.(models.User)
+
+		var profile models.Profile
+
+		// find the user profile
+		err := db.Where(&models.Profile{UserID: user.ID}).Find(&profile).Error
+		if err != nil {
+			c.JSON(500, gin.H{"error": err})
+			return
+		}
+		data, _ := json.MarshalIndent(serializers.ProfileDetailSerializer(&profile, &user), "", "")
+		c.JSON(200, gin.H{"message": "User Detail", "data": string(data)})
+		return
+	}
+}
+
+func ProfileUpdate() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var _, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+		// Check if the user exists
+		db := snapchat_clone.DBConnection()
+		defer snapchat_clone.CloseDB()
+		loggedInUser, _ := c.Get("user")
+		user := loggedInUser.(models.User)
+
+		// profile passed from posted data
+		var profile models.Profile
+		// profile found from database
+		var foundProfile models.Profile
+		if err := c.BindJSON(&profile); err != nil {
+			c.JSON(400, gin.H{"error": "Invalid parameters pass"})
+			return
+		}
+		//err := db.Where(&models.Profile{UserID: user.ID}).Find(&foundProfile).
+		//	Updates(map[string]interface{}profile)
+		//
+		//
+		//
+		//db.Where(&models.Profile{UserID: user.ID}).Update()
+
 	}
 }

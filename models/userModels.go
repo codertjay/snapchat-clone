@@ -1,24 +1,14 @@
 package models
 
 import (
-	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"log"
-	"reflect"
 	snapchat_clone "snapchat-clone/snapchat-clone/database"
-	"strings"
 	"time"
 )
 
 // Note : Fields with omit empty are not allowed to be shown in the frontend
-type tagOptions string
-
-// ContainOmitEmpty splits a struct field's json tag into its name and
-// comma-separated options.
-func ContainOmitEmpty(tag string) bool {
-	return strings.Contains(tag, "omitempty")
-}
 
 // User /* The user models struct */
 type User struct {
@@ -34,19 +24,16 @@ type User struct {
 	RefreshToken *string    `json:"refresh_token,omitempty"`
 }
 
-func (c *User) UserDetailSerializer() *User {
-	var user User
-	user = *c
-	NumberOfValues := reflect.TypeOf(user).NumField()
-	for i := 0; i < NumberOfValues; i++ {
-		fmt.Println(ContainOmitEmpty(reflect.TypeOf(user).FieldByIndex([]int{i}).Tag.Get("json")))
-		if ContainOmitEmpty(reflect.TypeOf(user).FieldByIndex([]int{i}).Tag.Get("json")) == true {
-			reflect.Zero(reflect.ValueOf(user).FieldByIndex([]int{i}).Type())
-			fmt.Println(reflect.ValueOf(user).FieldByIndex([]int{i}))
-			fmt.Println("Contain omit empty")
-		}
+func (u *User) UserDetailSerializer() *User {
+	var user = User{
+		ID:        u.ID,
+		Name:      u.Name,
+		Email:     u.Email,
+		Phone:     u.Phone,
+		Birthday:  u.Birthday,
+		CreatedAt: u.CreatedAt,
+		Timestamp: u.Timestamp,
 	}
-	fmt.Println(user)
 	return &user
 }
 
@@ -97,7 +84,7 @@ func (u *User) Update(user *User, db *gorm.DB) {
 type Profile struct {
 	//	the one to one relationship
 	ID                    uuid.UUID  `json:"id" gorm:"primaryKey"`
-	User                  *string    `json:"user" gorm:"constraint:OnDelete:CASCADE;unique_index;"`
+	User                  *User    `json:"user" gorm:"constraint:OnDelete:CASCADE;unique_index;"`
 	UserID                uuid.UUID  `json:"user_id" gorm:"not null;"`
 	ProfileImage          *string    `json:"profile_image"`
 	BackgroundImage       *string    `json:"background_image"`

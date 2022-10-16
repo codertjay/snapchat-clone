@@ -12,4 +12,5 @@ func Routers(incomingRoutes *gin.Engine) {
 	//	Logged in route
 	incomingRoutes.POST("api/v1/user/user_update/", middleware.RequireAuth(), controllers.UserUpdate())
 	incomingRoutes.GET("api/v1/user/user_detail/", middleware.RequireAuth(), controllers.UserDetail())
+	incomingRoutes.GET("api/v1/user/profile_detail/", middleware.RequireAuth(), controllers.ProfileDetail())
 }
