@@ -33,7 +33,13 @@ func RequireAuth() gin.HandlerFunc {
 			return
 		}
 		var user models.User
-		db.First(&user, claims.ID)
+		err2 := db.Model(models.User{}).Where(models.User{ID: claims.ID}).Find(&user).Error
+		if err2 != nil {
+			fmt.Println(err2)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err2})
+			c.Abort()
+			return
+		}
 		c.Set("user", user)
 		c.Next()
 

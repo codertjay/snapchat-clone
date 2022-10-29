@@ -15,6 +15,8 @@ func SnapChatCloneRoutes() *gin.Engine {
 	/* Log */
 	router.Use(gin.Logger())
 	// Users routes
-	routers.Routers(router)
+	routers.UserRouters(router)
+	routers.ChatRouters(router)
+	routers.StoryRouters(router)
 	return router
 }

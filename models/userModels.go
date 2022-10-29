@@ -90,7 +90,7 @@ type Profile struct {
 	BackgroundImageURL    *string    `json:"background_image_url"`
 	GhostMode             *bool      `json:"ghost_mode" gorm:"default:false;type:bool;"`
 	SeeLocation           *string    `json:"see_location" validate:"omitempty,eq=FRIENDS|eq=EXCEPT_FRIENDS" gorm:"default:FRIENDS;"`
-	LocationALlFriends    []User     `json:"location_all_friends" gorm:"many2many:location_all_friends;"`
+	ALlFriends            []User     `json:"all_friends" gorm:"many2many:all_friends;"`
 	LocationExceptFriends []User     `json:"location_except_friends" gorm:"many2many:location_except_friends;"`
 	TwoFactor             *bool      `json:"two_factor" gorm:"default:false;type:bool;"`
 	Timestamp             *time.Time `json:"timestamp" gorm:"default:CURRENT_TIMESTAMP;autoUpdateTime;"`

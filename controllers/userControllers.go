@@ -225,8 +225,8 @@ func ProfileUpdate() gin.HandlerFunc {
 				return
 			}
 		}
-		if profile.LocationALlFriends != nil {
-			err := db.Model(&profile).Where(&models.Profile{UserID: user.ID}).Update("location_all_friends", profile.LocationALlFriends).Error
+		if profile.ALlFriends != nil {
+			err := db.Model(&profile).Where(&models.Profile{UserID: user.ID}).Update("location_all_friends", profile.ALlFriends).Error
 			if err != nil {
 				c.JSON(500, gin.H{"error": err.Error()})
 				return

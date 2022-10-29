@@ -6,7 +6,7 @@ import (
 	"snapchat-clone/snapchat-clone/middleware"
 )
 
-func Routers(incomingRoutes *gin.Engine) {
+func UserRouters(incomingRoutes *gin.Engine) {
 	incomingRoutes.POST("api/v1/auth/signup/", controllers.UserSignup())
 	incomingRoutes.POST("api/v1/auth/login/", controllers.UserLogin())
 	//	Logged in route
