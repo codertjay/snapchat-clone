@@ -12,7 +12,7 @@ import (
 
 // User /* The user models struct */
 type User struct {
-	ID           uuid.UUID  `json:"id,omitempty" gorm:"primaryKey;"`
+	ID           uuid.UUID  `json:"id,omitempty" gorm:"primaryKey;type:uuid;"`
 	Name         *string    `json:"name,omitempty" validate:"required,max=250,min=2" gorm:"size:250;"`
 	Email        *string    `json:"email,omitempty" validate:"required,max=100,min=5" gorm:"type:varchar(100);unique_index;"`
 	Phone        *string    `json:"phone,omitempty" validate:"required,max=20,min=3" gorm:"type:varchar(20);unique_index;"`
@@ -24,6 +24,11 @@ type User struct {
 	RefreshToken *string    `json:"refresh_token,omitempty"`
 }
 
+// Setting the uuid before creating this stuff
+func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+	u.ID = uuid.New()
+	return
+}
 func (u *User) UserDetailSerializer() *User {
 	var user = User{
 		ID:        u.ID,
@@ -83,15 +88,21 @@ func (u *User) Update(user *User, db *gorm.DB) {
 // Profile /*  Profile*/
 type Profile struct {
 	//	the one to one relationship
-	ID                    uuid.UUID  `json:"id" gorm:"primaryKey"`
+	ID                    uuid.UUID  `json:"id" gorm:"primaryKey;type:uuid;"`
 	User                  *User      `json:"user" gorm:"constraint:OnDelete:CASCADE;unique_index;"`
 	UserID                uuid.UUID  `json:"user_id" gorm:"not null;"`
 	ProfileImageURL       *string    `json:"profile_image_url"`
 	BackgroundImageURL    *string    `json:"background_image_url"`
 	GhostMode             *bool      `json:"ghost_mode" gorm:"default:false;type:bool;"`
 	SeeLocation           *string    `json:"see_location" validate:"omitempty,eq=FRIENDS|eq=EXCEPT_FRIENDS" gorm:"default:FRIENDS;"`
-	ALlFriends            []User     `json:"all_friends" gorm:"many2many:all_friends;"`
+	AllFriends            []User     `json:"all_friends" gorm:"many2many:all_friends;"`
 	LocationExceptFriends []User     `json:"location_except_friends" gorm:"many2many:location_except_friends;"`
 	TwoFactor             *bool      `json:"two_factor" gorm:"default:false;type:bool;"`
 	Timestamp             *time.Time `json:"timestamp" gorm:"default:CURRENT_TIMESTAMP;autoUpdateTime;"`
+}
+
+// BeforeCreate  setting the uuid of the value
+func (u *Profile) BeforeCreate(tx *gorm.DB) (err error) {
+	u.ID = uuid.New()
+	return
 }

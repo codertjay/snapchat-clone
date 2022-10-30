@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"log"
 	"snapchat-clone/models"
 	"snapchat-clone/serializers"
@@ -11,8 +10,6 @@ import (
 	"snapchat-clone/utils"
 	"time"
 )
-
-var validate = validator.New()
 
 // UserSignup /* This is meant to register a user*/
 func UserSignup() gin.HandlerFunc {
@@ -225,8 +222,8 @@ func ProfileUpdate() gin.HandlerFunc {
 				return
 			}
 		}
-		if profile.ALlFriends != nil {
-			err := db.Model(&profile).Where(&models.Profile{UserID: user.ID}).Update("location_all_friends", profile.ALlFriends).Error
+		if profile.AllFriends != nil {
+			err := db.Model(&profile).Where(&models.Profile{UserID: user.ID}).Update("location_all_friends", profile.AllFriends).Error
 			if err != nil {
 				c.JSON(500, gin.H{"error": err.Error()})
 				return

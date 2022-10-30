@@ -35,7 +35,7 @@ func ProfileDetailSerializer(profile *models.Profile, user *models.User) *models
 		BackgroundImageURL:    profile.BackgroundImageURL,
 		GhostMode:             profile.GhostMode,
 		SeeLocation:           profile.SeeLocation,
-		ALlFriends:            profile.ALlFriends,
+		AllFriends:            profile.AllFriends,
 		LocationExceptFriends: profile.LocationExceptFriends,
 		TwoFactor:             profile.TwoFactor,
 		Timestamp:             profile.Timestamp,

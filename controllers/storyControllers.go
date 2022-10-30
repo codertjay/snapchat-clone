@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"snapchat-clone/models"
 	snapchat_clone "snapchat-clone/snapchat-clone/database"
@@ -24,25 +25,27 @@ func UserStoryList() gin.HandlerFunc {
 
 		//
 		// setting the profile what we initialized
-		var friends []models.User
+		var friends models.User
 		var stories []models.Story
-		err := db.Table("profiles").
-			Find("id", user.ID).
-			Association("ALlFriends").Find(&friends).Error
+		err := db.Model(models.Profile{}).
+			Where(&models.Profile{UserID: user.ID}).
+			Association("AllFriends").Find(&friends).Error
+
 		if err != nil {
+			fmt.Println(err)
 			c.JSON(400, gin.H{"error": "An error occurred getting user profile"})
 			return
 		}
 		// now we have all the friends in a list so let's search and get the story's
-		for _, item := range friends {
-			var story models.Story
-			err := db.Table("story").Where(&models.Story{UserID: &item.ID}).First(&story).Error
-			if err != nil {
-				c.JSON(400, gin.H{"error": "An error occurred getting story"})
-				return
-			}
-			stories = append(stories, story)
-		}
+		//for _, item := range friends {
+		//	var story models.Story
+		//	err := db.Model(models.Story{}).Where(&models.Story{UserID: &item.ID}).First(&story).Error
+		//	if err != nil {
+		//		c.JSON(400, gin.H{"error": "An error occurred getting story"})
+		//		return
+		//	}
+		//	stories = append(stories, story)
+		//}
 		c.JSON(200, stories)
 		return
 
