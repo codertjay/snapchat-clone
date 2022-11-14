@@ -25,6 +25,14 @@ func UserDetailSerializer(user *models.User) *models.User {
 	return &serialized
 }
 
+func MinimumUserDetailSerializer(user *models.User) *models.User {
+	var serialized = models.User{
+		ID:   user.ID,
+		Name: user.Name,
+	}
+	return &serialized
+}
+
 func ProfileDetailSerializer(profile *models.Profile, user *models.User) *models.Profile {
 	user = UserDetailSerializer(user)
 	var serialized = models.Profile{

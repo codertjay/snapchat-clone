@@ -34,21 +34,3 @@ func (u *Message) BeforeCreate(tx *gorm.DB) (err error) {
 	u.ID = uuid.New()
 	return
 }
-
-// FriendRequest /* this contains list of friend request sent and received .
-// so through this part the user is able to */
-type FriendRequest struct {
-	ID         uuid.UUID  `json:"id"  gorm:"primaryKey;"`
-	Accepted   *bool      `json:"accepted" gorm:"default:false;type:bool;"`
-	FromUser   *User      `json:"from_user"   gorm:"constraint:OnDelete:CASCADE;unique_index;"`
-	ToUser     *User      `json:"to_user"  gorm:"constraint:OnDelete:CASCADE;unique_index;"`
-	FromUserID uuid.UUID  `json:"from_user_id" gorm:"not null;"`
-	ToUserID   uuid.UUID  `json:"to_user_id" validate:"required" gorm:"not null;"`
-	Timestamp  *time.Time `json:"timestamp" gorm:"default:CURRENT_TIMESTAMP;autoUpdateTime;"`
-}
-
-// Setting the uuid before creating this stuff
-func (u *FriendRequest) BeforeCreate(tx *gorm.DB) (err error) {
-	u.ID = uuid.New()
-	return
-}

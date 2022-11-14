@@ -18,7 +18,7 @@ func SendFriendRequest() gin.HandlerFunc {
 		defer snapchat_clone.CloseDB()
 		/* I know you might think why don't I just use the model for the json stuff but. Somehow user might send field that could conflict with the
 		existing field that i won't like to change from json but from my code*/
-		var friendRequestSerializer serializers.FriendRequestSerializer
+		var friendRequestSerializer serializers.SendAndAcceptFriendRequestSerializer
 		/* Convert json and binds it for golang to understand*/
 		if err := c.BindJSON(&friendRequestSerializer); err != nil {
 			c.JSON(400, gin.H{"error": "Error converting to json"})
@@ -46,7 +46,7 @@ func SendFriendRequest() gin.HandlerFunc {
 		// before creating i check if i have sent a friend request to the user before
 		var count int64
 		db.Table("friend_requests").
-			Find(&models.FriendRequest{ToUserID: friendRequest.ToUserID, FromUserID: friendRequest.FromUserID}).
+			Where(&models.FriendRequest{ToUserID: friendRequest.ToUserID, FromUserID: friendRequest.FromUserID}).
 			Count(&count)
 		if int(count) > 0 {
 			c.JSON(400, gin.H{"error": "Already sent request to this user"})
@@ -78,12 +78,26 @@ func ReceivedFriendRequests() gin.HandlerFunc {
 		//  initialize the db connection
 		db := snapchat_clone.DBConnection()
 		defer snapchat_clone.CloseDB()
+		//Friend requests
+		var friendRequests []models.FriendRequest
 		//	 logged in user
 		loggedInUser, _ := c.Get("user")
 		user := loggedInUser.(models.User)
 		// return all
-		result := db.Table("friend_requests").Find("to_user_id", user.ID)
-		c.JSON(200, result)
+		db.Model(&models.FriendRequest{}).Where("to_user_id", user.ID).Find(&friendRequests)
+		for index, friendRequest := range friendRequests {
+			// get the  user
+			var fromUser models.User
+			err := db.Model(&models.User{}).Where("id", friendRequests[index].FromUserID).Find(&fromUser).Error
+			if err == nil {
+				friendRequest.FromUser = &fromUser
+			}
+			// get the to user
+			friendRequest.ToUser = &user
+			// serialized the friend requests
+			friendRequests[index] = serializers.FriendRequestListSerializer(&friendRequest)
+		}
+		c.JSON(200, friendRequests)
 	}
 }
 
@@ -99,12 +113,20 @@ func AcceptFriendRequest() gin.HandlerFunc {
 		user := loggedInUser.(models.User)
 
 		// initialize accept request serializer
-		var acceptRequestSerializer serializers.AcceptRequestSerializer
+		var acceptRequestSerializer serializers.SendAndAcceptFriendRequestSerializer
+
+		// validating
+		validatorErr := validate.Struct(acceptRequestSerializer)
+		if validatorErr != nil {
+			c.JSON(400, gin.H{"error": validatorErr.Error()})
+			return
+		}
 		/* Convert json and binds it for golang to understand*/
 		if err := c.BindJSON(&acceptRequestSerializer); err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
+
 		// find the user we are adding to friends
 		var otherUser models.User
 		err := db.Table("users").Find("id", acceptRequestSerializer.ID).First(&otherUser).Error
@@ -113,8 +135,13 @@ func AcceptFriendRequest() gin.HandlerFunc {
 			return
 
 		}
-		err = db.Table("friend_requests").Find("from_user_id", acceptRequestSerializer.ID).
-			Update("accepted", true).Error
+		/* Find and update the friend request the user sent Check if i have also sent a request before and also accept it */
+		err = db.Model(&models.FriendRequest{}).
+			Where("from_user_id", acceptRequestSerializer.ID, "to_user_id", user.ID).
+			Update("accepted", true).
+			Where("to_user_id", acceptRequestSerializer.ID, "from_user_id", user.ID).
+			Update("accepted", true).
+			Error
 		if err != nil {
 			c.JSON(400, gin.H{"error": "An error occurred acceptation user request"})
 			return
